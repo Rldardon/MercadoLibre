@@ -89,15 +89,13 @@ public class MercadoLibreSearchTest {
             wordReport.addStep("6", "Ordenar por 'Menor precio'", "Resultados ordenados",
                     wordReport.takeScreenshot(driver, "ordenado_menor_precio"));
 
-            //7. Tomna de nombre y precios de los resultados
+            //7. Tomna de nombre y precios de los resultados --pasar el numero de productos
             Thread.sleep(3000);
             System.out.println(searchResultsPage.getNProductTitles(3));
             System.out.println(searchResultsPage.getNProductPrices(3));
-            wordReport.addStep("7", "Lista de productos", "Productos",
-                    wordReport.takeScreenshot(driver, "los productos son: "));
 
             // 8. Finalización exitosa
-            wordReport.addStep("7", "Prueba completada", "ÉXITO - Todos los pasos completados", "");
+            wordReport.addStep("8", "Prueba completada", "ÉXITO - Todos los pasos completados", "");
 
         } catch (Exception e) {
             // En caso de error

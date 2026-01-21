@@ -6,6 +6,9 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,41 +21,43 @@ public class SearchResultsPage extends BasePage {
     @FindBy(css = "ol.ui-search-layout li.ui-search-layout__item")
     private List<WebElement> productItems;
 
-    @FindBy(xpath = "//*[@id=\":R1b55ie:\"]")
+    @FindBy(xpath = "//span[contains(text(),'Más relevantes')]")
     private WebElement sortDropdown;
 
     @FindBy(xpath = "//span[contains(text(),'Menor precio')]")
     private WebElement selectSortDropdown;
 
-    @FindBy(xpath = "(//span[contains(text(),'Nuevo')])[2]")
+    @FindBy(xpath = "//span[contains(text(),'Nuevo')]")
     private WebElement newConditionFilter;
 
-    @FindBy(css = ".ui-search-price__part--medium .andes-money-amount__fraction")
+    @FindBy(css = ".andes-money-amount__fraction")
     private List<WebElement> pricesFractions;
 
-    @FindBy(css = ".ui-search-result__wrapper")
+    @FindBy(css = ".ui-search-result__wrapper, .ui-search-layout__item, .andes-card")
     private List<WebElement> productCards;
+
+
+
+    private WebDriverWait shortWait;
 
     public SearchResultsPage(WebDriver driver) {
         super(driver);
-    }
-
-    public String getResultsTitle() {
-        return wait.until(ExpectedConditions.visibilityOf(resultsTitle)).getText();
-    }
-
-    public int getNumberOfResults() {
-        return productItems.size();
+        this.shortWait = new WebDriverWait(driver, Duration.ofSeconds(5));
     }
 
     public boolean areResultsDisplayed() {
-        return !productItems.isEmpty();
+        try {
+            wait.until(d -> !productItems.isEmpty());
+            return !productItems.isEmpty();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public void showByLowestPrice() {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(sortDropdown)).click();
-
+            Thread.sleep(1000);
         } catch (Exception e) {
             throw new RuntimeException("Error al ordenar por menor precio: " + e.getMessage());
         }
@@ -61,33 +66,27 @@ public class SearchResultsPage extends BasePage {
     public void sortByLowestPrice() {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(selectSortDropdown)).click();
-
+            Thread.sleep(2000);
         } catch (Exception e) {
             throw new RuntimeException("Error al ordenar por menor precio: " + e.getMessage());
         }
     }
 
-
-
     public void filterByNewCondition() {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(newConditionFilter)).click();
-            wait.until(ExpectedConditions.stalenessOf(productCards.get(0)));
+            Thread.sleep(3000);
         } catch (Exception e) {
             throw new RuntimeException("Error al filtrar por condición 'Nuevo': " + e.getMessage());
         }
     }
 
-
-
-
-
-    public List<String> getFirstNProductTitles(int count) {
+    public List<String> getNProductTitles(int count) {
         return productCards.stream()
                 .limit(count)
                 .map(card -> {
                     try {
-                        return card.findElement(By.cssSelector(".ui-search-item__title")).getText();
+                        return card.findElement(By.cssSelector(".poly-component__title")).getText();
                     } catch (Exception e) {
                         return "Title not found";
                     }
@@ -95,13 +94,21 @@ public class SearchResultsPage extends BasePage {
                 .collect(Collectors.toList());
     }
 
-    public List<String> getFirstNProductPrices(int count) {
+    public List<String> getNProductPrices(int count) {
         return productCards.stream()
                 .limit(count)
                 .map(card -> {
-                    WebElement priceFraction = card.findElement(By.cssSelector(".andes-money-amount__fraction"));
-                    WebElement priceDecimals = card.findElement(By.cssSelector(".andes-money-amount__cents"));
-                    return priceFraction.getText() + "," + priceDecimals.getText();
+                    WebElement priceContainer = card.findElement(By.cssSelector(".poly-price__current"));
+                    WebElement priceFraction = priceContainer.findElement(By.cssSelector(".andes-money-amount__fraction"));
+                    String priceText = priceFraction.getText().trim();
+                    priceText = priceText.replace(",", "")
+                            .replace("$", "")
+                            .replace(" ", "")
+                            .trim();
+                    if (priceText.isEmpty()) {
+                        return "0";
+                    }
+                    return priceText;
                 })
                 .collect(Collectors.toList());
     }

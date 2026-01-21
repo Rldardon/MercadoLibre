@@ -12,8 +12,14 @@ import pages.SearchResultsPage;
 import utils.WordReport;
 import utils.WebDriverFactory;
 
+
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.List;
+
 
 public class MercadoLibreSearchTest {
     private WebDriver driver;
@@ -27,8 +33,12 @@ public class MercadoLibreSearchTest {
     public void setUp() {
 
         try {
+            Path srcPath = Paths.get("src", "test", "resources", "banner.txt");
+            String banner = Files.readString(srcPath, StandardCharsets.UTF_8);
+            System.out.println("\n");
+            System.out.println(banner);
+            Thread.sleep(100);
             driver = WebDriverFactory.createDriver("chrome");
-
             wait = new WebDriverWait(driver, Duration.ofSeconds(20));
             homePage = new HomePage(driver);
             countrySelectionPage = new CountrySelectionPage(driver);
@@ -47,13 +57,12 @@ public class MercadoLibreSearchTest {
     }
 
     @Test
-    public void testSearchAndFilterPlayStation5() {
+    public void testSearchAndFilterPlayStation5() throws InterruptedException {
         try {
             // 1. Seleccionar país México
             wordReport.addStep("1", "Seleccionar país México", "Clic en opción México",
                     wordReport.takeScreenshot(driver, "seleccion_pais"));
             homePage.selectMexicoCountry();
-
 
             // 2. Buscar PlayStation 5
             homePage.searchFor("PlayStation 5");
@@ -61,27 +70,34 @@ public class MercadoLibreSearchTest {
                     wordReport.takeScreenshot(driver, "busqueda_realizada"));
 
             // 3. Verificar resultados iniciales
-            Assert.assertTrue(searchResultsPage.areResultsDisplayed(),
-                    "Deberían mostrarse resultados de búsqueda");
+            Assert.assertTrue(searchResultsPage.areResultsDisplayed());
+            wordReport.addStep("3", "Deberían mostrarse resultados de búsqueda", "Resultados de búsqueda",
+                    wordReport.takeScreenshot(driver, "Resultados_busqueda"));
 
             // 4. Filtrar por condición "Nuevo"
             searchResultsPage.filterByNewCondition();
-            wordReport.addStep("3", "Filtrar por condición 'Nuevo'", "Filtro aplicado correctamente",
+            wordReport.addStep("4", "Filtrar por condición 'Nuevo'", "Filtro aplicado correctamente",
                     wordReport.takeScreenshot(driver, "filtro_nuevo"));
 
             // 5. Catalogo de precios
             searchResultsPage.showByLowestPrice();
-            wordReport.addStep("4", "Opciones de precio", "Vista del catalogo",
+            wordReport.addStep("5", "Opciones de precio", "Vista del catalogo",
                     wordReport.takeScreenshot(driver, "ordenado_menor_precio"));
 
             // 6. Seleecion Menor Precio
             searchResultsPage.sortByLowestPrice();
-            wordReport.addStep("4", "Ordenar por 'Menor precio'", "Resultados ordenados",
+            wordReport.addStep("6", "Ordenar por 'Menor precio'", "Resultados ordenados",
                     wordReport.takeScreenshot(driver, "ordenado_menor_precio"));
 
-            // 7. Finalización exitosa
-            wordReport.addStep("6", "Prueba completada", "ÉXITO - Todos los pasos completados", "");
+            //7. Tomna de nombre y precios de los resultados
+            Thread.sleep(3000);
+            System.out.println(searchResultsPage.getNProductTitles(3));
+            System.out.println(searchResultsPage.getNProductPrices(3));
+            wordReport.addStep("7", "Lista de productos", "Productos",
+                    wordReport.takeScreenshot(driver, "los productos son: "));
 
+            // 8. Finalización exitosa
+            wordReport.addStep("7", "Prueba completada", "ÉXITO - Todos los pasos completados", "");
 
         } catch (Exception e) {
             // En caso de error

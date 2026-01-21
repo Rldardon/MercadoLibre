@@ -30,13 +30,11 @@ public class SearchResultsPage extends BasePage {
     @FindBy(xpath = "//span[contains(text(),'Nuevo')]")
     private WebElement newConditionFilter;
 
-    @FindBy(css = ".andes-money-amount__fraction")
+    @FindBy(xpath = "//span[@class='andes-money-amount__fraction']")
     private List<WebElement> pricesFractions;
 
-    @FindBy(css = ".ui-search-result__wrapper, .ui-search-layout__item, .andes-card")
+    @FindBy(xpath = "//a[@class='poly-component__title']")
     private List<WebElement> productCards;
-
-
 
     private WebDriverWait shortWait;
 
@@ -84,32 +82,17 @@ public class SearchResultsPage extends BasePage {
     public List<String> getNProductTitles(int count) {
         return productCards.stream()
                 .limit(count)
-                .map(card -> {
-                    try {
-                        return card.findElement(By.cssSelector(".poly-component__title")).getText();
-                    } catch (Exception e) {
-                        return "Title not found";
-                    }
-                })
+                .map(WebElement::getText)
                 .collect(Collectors.toList());
     }
 
     public List<String> getNProductPrices(int count) {
-        return productCards.stream()
+        return pricesFractions.stream()
                 .limit(count)
-                .map(card -> {
-                    WebElement priceContainer = card.findElement(By.cssSelector(".poly-price__current"));
-                    WebElement priceFraction = priceContainer.findElement(By.cssSelector(".andes-money-amount__fraction"));
-                    String priceText = priceFraction.getText().trim();
-                    priceText = priceText.replace(",", "")
-                            .replace("$", "")
-                            .replace(" ", "")
-                            .trim();
-                    if (priceText.isEmpty()) {
-                        return "0";
-                    }
-                    return priceText;
-                })
+                .map(WebElement::getText)
+                .map(texto -> "$" + texto + ".00")
                 .collect(Collectors.toList());
     }
+
+
 }
